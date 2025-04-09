@@ -1,7 +1,11 @@
 name: commonkit
 description: "A lightweight utility package for Flutter with widgets, helpers, and extensions"
-version: 0.1.0
-homepage:
+version: 0.1.2
+
+homepage: "https://viralkatwad12.github.io/commonkit/"
+repository: "https://github.com/viralkatwad12/CommonKit"
+issue_tracker: "https://github.com/viralkatwad12/commonkit/issues"
+
 
 environment:
   sdk: ^3.7.0
