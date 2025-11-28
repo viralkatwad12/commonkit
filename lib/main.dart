@@ -51,7 +51,6 @@ class _TestHomePageState extends State<TestHomePage> {
   final _sessionManager = SessionManager();
   final _directoryManager = DirectoryManager();
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 500));
-  final _logger = Logger();
   bool _rememberMe = false;
   String _directoryStatus = '';
   String _clipboardContent = '';
@@ -70,12 +69,12 @@ class _TestHomePageState extends State<TestHomePage> {
     try {
       final data = await _networkHelper.get('/posts/1');
       setState(() => _isLoading = false);
-      _logger.info('Network request succeeded');
+      Logger.info('Network request succeeded');
       if (!mounted) return;
       showToast(context, message: 'Network Success: ${data['title'].truncate(20)}');
     } catch (e) {
       setState(() => _isLoading = false);
-      _logger.error('Network request failed', e);
+      Logger.error('Network request failed', e);
       if (!mounted) return;
       showToast(context, message: 'Network Error: $e');
     }
@@ -94,12 +93,12 @@ class _TestHomePageState extends State<TestHomePage> {
           fields: {'title': 'Test Upload'},
         );
         setState(() => _isLoading = false);
-        _logger.info('File upload succeeded');
+        Logger.info('File upload succeeded');
         if (!mounted) return;
         showToast(context, message: 'File Upload Success');
       } catch (e) {
         setState(() => _isLoading = false);
-        _logger.error('File upload failed', e);
+        Logger.error('File upload failed', e);
         if (!mounted) return;
         showToast(context, message: 'File Upload Error: $e');
       }
@@ -114,7 +113,7 @@ class _TestHomePageState extends State<TestHomePage> {
         _passwordController.text,
       );
       setState(() => _isLoading = false);
-      _logger.info('Login attempt');
+      Logger.info('Login attempt');
       if (!mounted) return;
       showToast(context, message: 'Login Successful');
     }
@@ -124,7 +123,7 @@ class _TestHomePageState extends State<TestHomePage> {
     setState(() => _isLoading = true);
     await _sessionManager.logout();
     setState(() => _isLoading = false);
-    _logger.info('User logged out');
+    Logger.info('User logged out');
     if (!mounted) return;
     showToast(context, message: 'Logged Out');
   }
@@ -137,12 +136,12 @@ class _TestHomePageState extends State<TestHomePage> {
         _isLoading = false;
         _directoryStatus = 'Created: ${dir.path}';
       });
-      _logger.info('Directory created: ${dir.path}');
+      Logger.info('Directory created: ${dir.path}');
       if (!mounted) return;
       showToast(context, message: 'Directory Created');
     } catch (e) {
       setState(() => _isLoading = false);
-      _logger.error('Directory creation failed', e);
+      Logger.error('Directory creation failed', e);
       if (!mounted) return;
       showToast(context, message: 'Error: $e');
     }
@@ -150,7 +149,7 @@ class _TestHomePageState extends State<TestHomePage> {
 
   void _copyToClipboard() async {
     await ClipboardManager.copy('Sample Text');
-    _logger.info('Text copied to clipboard');
+    Logger.info('Text copied to clipboard');
     if (!mounted) return;
     showToast(context, message: 'Copied to Clipboard');
   }
@@ -158,7 +157,7 @@ class _TestHomePageState extends State<TestHomePage> {
   void _pasteFromClipboard() async {
     final text = await ClipboardManager.paste();
     setState(() => _clipboardContent = text ?? 'Nothing in clipboard');
-    _logger.info('Pasted from clipboard: $text');
+    Logger.info('Pasted from clipboard: $text');
     if (!mounted) return;
     showToast(context, message: 'Pasted: $text');
   }
@@ -168,13 +167,13 @@ class _TestHomePageState extends State<TestHomePage> {
     final jsonString = DataSerializer.serialize(data);
     final deserialized = DataSerializer.deserialize(jsonString);
     setState(() => _serializedData = 'Serialized: $jsonString\nDeserialized: $deserialized');
-    _logger.info('Serialization test completed');
+    Logger.info('Serialization test completed');
     showToast(context, message: 'Serialization Tested');
   }
 
   void _requestPermission() async {
     final granted = await PermissionManager.request(Permission.storage);
-    _logger.info('Storage permission granted: $granted');
+    Logger.info('Storage permission granted: $granted');
     if (!mounted) return;
     showCustomDialog(
       context,
