@@ -110,9 +110,8 @@ class _TestHomePageState extends State<TestHomePage> {
     if (_formKey.currentState!.validate()) {
       setState(() => _isLoading = true);
       final success = await _sessionManager.login(
-        username: _emailController.text,
-        password: _passwordController.text,
-        rememberMe: _rememberMe,
+        _emailController.text,
+        _passwordController.text,
       );
       setState(() => _isLoading = false);
       _logger.info('Login attempt: ${success ? "Success" : "Failed"}');
