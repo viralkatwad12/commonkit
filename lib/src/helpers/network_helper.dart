@@ -4,36 +4,33 @@ import '../config/global_config.dart';
 import 'dart:io';
 
 /// A utility class to simplify HTTP network requests in Flutter apps.
-/// Supports GET, POST with JSON, and POST with multiple file uploads.
+/// Supports GET, POST, PUT, DELETE with JSON, and POST with multiple file uploads.
 class NetworkHelper {
   final String? baseUrl;
   final http.Client _client;
+  final Map<String, String> _headers;
 
-  NetworkHelper({this.baseUrl, http.Client? client})
-      : _client = client ?? http.Client();
+  NetworkHelper({this.baseUrl, http.Client? client, Map<String, String>? headers})
+      : _client = client ?? http.Client(),
+        _headers = headers ?? {'Content-Type': 'application/json'};
 
   String? _effectiveBaseUrl() => baseUrl ?? GlobalConfig().baseUrl;
 
-  Future<dynamic> get(String endpoint) async {
+  Future<dynamic> get(String endpoint, {Map<String, String>? headers}) async {
     final effectiveBaseUrl = _effectiveBaseUrl();
     if (effectiveBaseUrl == null) {
       throw Exception('No base URL provided in NetworkHelper or GlobalConfig');
     }
     final url = Uri.parse('$effectiveBaseUrl$endpoint');
-    final response = await _client.get(url);
-    if (response.statusCode == 200) {
-      return jsonDecode(response.body);
-    } else {
-      throw Exception('Failed to load data: ${response.statusCode}');
-    }
+    final response = await _client.get(url, headers: {..._headers, ...?headers});
+    return _handleResponse(response);
   }
 
-  /// Sends a POST request with JSON data or files.
-  /// If [files] is provided, sends a multipart request; otherwise, sends JSON.
   Future<dynamic> post(
       String endpoint, {
         Map<String, dynamic>? body,
         List<File>? files,
+        Map<String, String>? headers,
       }) async {
     final effectiveBaseUrl = _effectiveBaseUrl();
     if (effectiveBaseUrl == null) {
@@ -42,8 +39,8 @@ class NetworkHelper {
     final url = Uri.parse('$effectiveBaseUrl$endpoint');
 
     if (files != null && files.isNotEmpty) {
-      // Handle multipart file upload
       var request = http.MultipartRequest('POST', url);
+      request.headers.addAll({..._headers, ...?headers});
       if (body != null) {
         body.forEach((key, value) {
           request.fields[key] = value.toString();
@@ -54,23 +51,53 @@ class NetworkHelper {
       }
       final streamedResponse = await request.send();
       final response = await http.Response.fromStream(streamedResponse);
-      if (response.statusCode == 200 || response.statusCode == 201) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to post data: ${response.statusCode}');
-      }
+      return _handleResponse(response, successStatusCode: 201);
     } else {
-      // Handle regular JSON POST
       final response = await _client.post(
         url,
-        headers: {'Content-Type': 'application/json'},
+        headers: {..._headers, ...?headers},
         body: body != null ? jsonEncode(body) : null,
       );
-      if (response.statusCode == 201 || response.statusCode == 200) {
-        return jsonDecode(response.body);
-      } else {
-        throw Exception('Failed to post data: ${response.statusCode}');
+      return _handleResponse(response, successStatusCode: 201);
+    }
+  }
+
+  Future<dynamic> put(
+      String endpoint, {
+        Map<String, dynamic>? body,
+        Map<String, String>? headers,
+      }) async {
+    final effectiveBaseUrl = _effectiveBaseUrl();
+    if (effectiveBaseUrl == null) {
+      throw Exception('No base URL provided in NetworkHelper or GlobalConfig');
+    }
+    final url = Uri.parse('$effectiveBaseUrl$endpoint');
+    final response = await _client.put(
+      url,
+      headers: {..._headers, ...?headers},
+      body: body != null ? jsonEncode(body) : null,
+    );
+    return _handleResponse(response);
+  }
+
+  Future<dynamic> delete(String endpoint, {Map<String, String>? headers}) async {
+    final effectiveBaseUrl = _effectiveBaseUrl();
+    if (effectiveBaseUrl == null) {
+      throw Exception('No base URL provided in NetworkHelper or GlobalConfig');
+    }
+    final url = Uri.parse('$effectiveBaseUrl$endpoint');
+    final response = await _client.delete(url, headers: {..._headers, ...?headers});
+    return _handleResponse(response);
+  }
+
+  dynamic _handleResponse(http.Response response, {int successStatusCode = 200}) {
+    if (response.statusCode == successStatusCode || (successStatusCode == 201 && response.statusCode == 200)) {
+      if (response.body.isEmpty) {
+        return null;
       }
+      return jsonDecode(response.body);
+    } else {
+      throw Exception('Failed to execute request: ${response.statusCode}, ${response.body}');
     }
   }
 }

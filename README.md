@@ -33,6 +33,21 @@ A lightweight, reusable utility package for Flutter apps, providing a collection
 - **DataSerializer**: Serialize/deserialize JSON data.
 - **PermissionManager**: Request and check app permissions.
 
+## Asynchronous Operations
+
+Many helpers in CommonKit perform asynchronous operations and return a `Future`. You should use `async/await` to work with them. For example, when using `NetworkHelper`:
+
+```dart
+Future<void> fetchData() async {
+  try {
+    final data = await _networkHelper.get('/posts/1');
+    // do something with data
+  } catch (e) {
+    // handle error
+  }
+}
+```
+
 ### Configuration
 - **CommonKitTheme**: Define app-wide colors and styles.
 - **GlobalConfig**: Manage global settings like base URL and user session.
@@ -48,3 +63,4 @@ Add CommonKit to your `pubspec.yaml`:
 ```yaml
 dependencies:
   commonkit: ^0.1.0  # Use the latest version from pub.dev
+```
