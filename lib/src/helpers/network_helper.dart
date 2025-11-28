@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import '../config/global_config.dart';
+import 'logger.dart';
 
 abstract class RequestInterceptor {
   Future<http.BaseRequest> onRequest(http.BaseRequest request);
@@ -86,6 +87,7 @@ class NetworkHelper {
 
   Future<dynamic> _send(http.BaseRequest request) async {
     try {
+      Logger.info('Request: ${request.method} ${request.url}');
       for (var interceptor in _interceptors) {
         request = await interceptor.onRequest(request);
       }
@@ -98,6 +100,7 @@ class NetworkHelper {
 
       return _handleResponse(await http.Response.fromStream(streamedResponse));
     } catch (e) {
+      Logger.error('Request failed', e);
       for (var interceptor in _interceptors) {
         await interceptor.onError(e);
       }
@@ -112,6 +115,7 @@ class NetworkHelper {
   }
 
   dynamic _handleResponse(http.Response response) {
+    Logger.info('Response: ${response.statusCode} ${response.request?.url}');
     if (response.statusCode >= 200 && response.statusCode < 300) {
       if (response.body.isEmpty) return null;
       return jsonDecode(response.body);

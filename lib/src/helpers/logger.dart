@@ -67,19 +67,19 @@ class Logger {
     _outputs.add(output);
   }
 
-  void log(LogLevel level, String message) {
-    if (level.index >= _logLevel.index) {
-      final formattedMessage = _formatter.format(level, message, DateTime.now());
-      for (final output in _outputs) {
+  static void log(LogLevel level, String message) {
+    if (level.index >= _instance._logLevel.index) {
+      final formattedMessage = _instance._formatter.format(level, message, DateTime.now());
+      for (final output in _instance._outputs) {
         output.write(formattedMessage);
       }
     }
   }
 
-  void debug(String message) => log(LogLevel.debug, message);
-  void info(String message) => log(LogLevel.info, message);
-  void warning(String message) => log(LogLevel.warning, message);
-  void error(String message, [Object? error, StackTrace? stackTrace]) {
+  static void debug(String message) => log(LogLevel.debug, message);
+  static void info(String message) => log(LogLevel.info, message);
+  static void warning(String message) => log(LogLevel.warning, message);
+  static void error(String message, [Object? error, StackTrace? stackTrace]) {
     log(LogLevel.error, '$message\nError: $error\nStackTrace: $stackTrace');
   }
 }
