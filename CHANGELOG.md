@@ -1,3 +1,7 @@
+## 0.1.7
+
+*   **Chore**: Upgraded Flutter and Dart SDK constraints to `flutter: '>=3.19.0'` and `sdk: '>=3.3.0 <4.0.0'` to align with modern standards.
+
 ## 0.1.6
 
 *   **Fixed**: Explicitly declared platform support for Android, iOS, Linux, macOS, Web, and Windows in `pubspec.yaml` to ensure correct `pana` analysis.
