@@ -9,10 +9,13 @@ void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await StorageHelper.init();
 
-  GlobalConfig().init(
-    baseUrl: 'https://jsonplaceholder.typicode.com',
+  await GlobalConfig().init(
+    environment: AppEnvironment.development,
+    baseUrls: {
+      AppEnvironment.development: 'https://jsonplaceholder.typicode.com',
+      AppEnvironment.production: 'https://api.production.com',
+    },
     variables: {'apiKey': '12345'},
-    isDebugMode: true,
     theme: const CommonKitTheme(primaryColor: Colors.blue),
   );
 
@@ -48,6 +51,7 @@ class _TestHomePageState extends State<TestHomePage> {
   final _sessionManager = SessionManager();
   final _directoryManager = DirectoryManager();
   final _debouncer = Debouncer(delay: const Duration(milliseconds: 500));
+  final _logger = Logger();
   bool _rememberMe = false;
   String _directoryStatus = '';
   String _clipboardContent = '';
@@ -66,11 +70,13 @@ class _TestHomePageState extends State<TestHomePage> {
     try {
       final data = await _networkHelper.get('/posts/1');
       setState(() => _isLoading = false);
-      Logger.info('Network request succeeded');
+      _logger.info('Network request succeeded');
+      if (!mounted) return;
       showToast(context, message: 'Network Success: ${data['title'].truncate(20)}');
     } catch (e) {
       setState(() => _isLoading = false);
-      Logger.error('Network request failed', e);
+      _logger.error('Network request failed', e);
+      if (!mounted) return;
       showToast(context, message: 'Network Error: $e');
     }
   }
@@ -82,17 +88,19 @@ class _TestHomePageState extends State<TestHomePage> {
       setState(() => _isLoading = true);
       try {
         final file = File(pickedFile.path);
-        final data = await _networkHelper.post(
+        await _networkHelper.upload(
           '/upload',
-          body: {'title': 'Test Upload'},
-          files: [file],
+          file: file,
+          fields: {'title': 'Test Upload'},
         );
         setState(() => _isLoading = false);
-        Logger.info('File upload succeeded');
+        _logger.info('File upload succeeded');
+        if (!mounted) return;
         showToast(context, message: 'File Upload Success');
       } catch (e) {
         setState(() => _isLoading = false);
-        Logger.error('File upload failed', e);
+        _logger.error('File upload failed', e);
+        if (!mounted) return;
         showToast(context, message: 'File Upload Error: $e');
       }
     }
@@ -107,7 +115,8 @@ class _TestHomePageState extends State<TestHomePage> {
         rememberMe: _rememberMe,
       );
       setState(() => _isLoading = false);
-      Logger.info('Login attempt: ${success ? "Success" : "Failed"}');
+      _logger.info('Login attempt: ${success ? "Success" : "Failed"}');
+      if (!mounted) return;
       showToast(context, message: success ? 'Login Successful' : 'Login Failed');
     }
   }
@@ -116,7 +125,8 @@ class _TestHomePageState extends State<TestHomePage> {
     setState(() => _isLoading = true);
     await _sessionManager.logout();
     setState(() => _isLoading = false);
-    Logger.info('User logged out');
+    _logger.info('User logged out');
+    if (!mounted) return;
     showToast(context, message: 'Logged Out');
   }
 
@@ -128,25 +138,29 @@ class _TestHomePageState extends State<TestHomePage> {
         _isLoading = false;
         _directoryStatus = 'Created: ${dir.path}';
       });
-      Logger.info('Directory created: ${dir.path}');
+      _logger.info('Directory created: ${dir.path}');
+      if (!mounted) return;
       showToast(context, message: 'Directory Created');
     } catch (e) {
       setState(() => _isLoading = false);
-      Logger.error('Directory creation failed', e);
+      _logger.error('Directory creation failed', e);
+      if (!mounted) return;
       showToast(context, message: 'Error: $e');
     }
   }
 
   void _copyToClipboard() async {
     await ClipboardManager.copy('Sample Text');
-    Logger.info('Text copied to clipboard');
+    _logger.info('Text copied to clipboard');
+    if (!mounted) return;
     showToast(context, message: 'Copied to Clipboard');
   }
 
   void _pasteFromClipboard() async {
     final text = await ClipboardManager.paste();
     setState(() => _clipboardContent = text ?? 'Nothing in clipboard');
-    Logger.info('Pasted from clipboard: $text');
+    _logger.info('Pasted from clipboard: $text');
+    if (!mounted) return;
     showToast(context, message: 'Pasted: $text');
   }
 
@@ -155,13 +169,14 @@ class _TestHomePageState extends State<TestHomePage> {
     final jsonString = DataSerializer.serialize(data);
     final deserialized = DataSerializer.deserialize(jsonString);
     setState(() => _serializedData = 'Serialized: $jsonString\nDeserialized: $deserialized');
-    Logger.info('Serialization test completed');
+    _logger.info('Serialization test completed');
     showToast(context, message: 'Serialization Tested');
   }
 
   void _requestPermission() async {
     final granted = await PermissionManager.request(Permission.storage);
-    Logger.info('Storage permission granted: $granted');
+    _logger.info('Storage permission granted: $granted');
+    if (!mounted) return;
     showCustomDialog(
       context,
       title: 'Permission Result',

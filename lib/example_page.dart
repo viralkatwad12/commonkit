@@ -36,10 +36,10 @@ class _ExamplePageState extends State<ExamplePage> {
       setState(() => _status = 'Uploading...');
       final file = File(pickedFile.path);
       try {
-        final data = await _networkHelper.post(
+        final data = await _networkHelper.upload(
           '/upload',
-          body: {'title': 'Example Upload'},
-          files: [file],
+          file: file,
+          fields: {'title': 'Example Upload'},
         );
         setState(() => _status = 'Upload: $data');
         showToast(context, message: 'Upload Success');

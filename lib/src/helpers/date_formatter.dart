@@ -13,18 +13,26 @@ class DateFormatter {
   /// Converts a [date] into a "time ago" string (e.g., "2 hours ago").
   /// Makes it easy to show relative time for recent events.
   static String timeAgo(DateTime date) {
-    // Get the current time for comparison
     final now = DateTime.now();
-    // Calculate the difference between now and the given date
-    final diff = now.difference(date);
+    final difference = now.difference(date);
 
-    // Return "Just now" if less than a minute has passed
-    if (diff.inMinutes < 1) return 'Just now';
-    // Return minutes ago if less than an hour has passed
-    if (diff.inHours < 1) return '${diff.inMinutes} minutes ago';
-    // Return hours ago if less than a day has passed
-    if (diff.inDays < 1) return '${diff.inHours} hours ago';
-    // Otherwise, return the full formatted date
-    return formatDate(date);
+    if (difference.inSeconds < 60) {
+      return 'Just now';
+    } else if (difference.inMinutes < 60) {
+      final minutes = difference.inMinutes;
+      return '$minutes minute${minutes == 1 ? '' : 's'} ago';
+    } else if (difference.inHours < 24) {
+      final hours = difference.inHours;
+      return '$hours hour${hours == 1 ? '' : 's'} ago';
+    } else if (difference.inDays < 30) {
+      final days = difference.inDays;
+      return '$days day${days == 1 ? '' : 's'} ago';
+    } else if (difference.inDays < 365) {
+      final months = (difference.inDays / 30).floor();
+      return '$months month${months == 1 ? '' : 's'} ago';
+    } else {
+      final years = (difference.inDays / 365).floor();
+      return '$years year${years == 1 ? '' : 's'} ago';
+    }
   }
 }

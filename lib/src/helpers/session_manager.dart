@@ -1,53 +1,64 @@
-import '../config/global_config.dart';
-import 'network_helper.dart';
+import 'dart:async';
+import 'storage_helper.dart';
 
-/// A utility class to manage user session states (login/logout).
+/// A singleton class to manage user session data, including login state and user credentials.
 class SessionManager {
-  final NetworkHelper _networkHelper;
+  static final SessionManager _instance = SessionManager._internal();
+  factory SessionManager() => _instance;
+  SessionManager._internal();
 
-  /// Constructor requiring a NetworkHelper instance.
-  SessionManager({NetworkHelper? networkHelper})
-      : _networkHelper = networkHelper ?? NetworkHelper();
+  String? _token;
+  String? _userId;
+  bool _isLoggedIn = false;
 
-  /// Logs in a user with [username] and [password], optionally remembering them.
-  Future<bool> login({
-    required String username,
-    required String password,
-    bool rememberMe = false,
-  }) async {
-    try {
-      // Simulate a login request (replace with real API endpoint)
-      final response = await _networkHelper.post(
-        '/login', // Hypothetical endpoint
-        body: {'username': username, 'password': password},
-      );
-      if (response['success'] == true) { // Adjust based on real API response
-        GlobalConfig().username = username;
-        GlobalConfig().password = password;
-        GlobalConfig().rememberMe = rememberMe;
-        GlobalConfig().isLoggedIn = true;
-        return true;
-      }
-      return false;
-    } catch (e) {
-      return false;
-    }
+  final StreamController<bool> _sessionController = StreamController<bool>.broadcast();
+
+  /// A stream that emits the login state (true for logged in, false for logged out).
+  /// Useful for updating UI based on session changes.
+  Stream<bool> get sessionStream => _sessionController.stream;
+
+  /// Initializes the SessionManager and loads any persisted session data.
+  /// Should be called on app startup.
+  Future<void> init() async {
+    await StorageHelper.init(); // Ensure storage is ready
+    _token = await StorageHelper.read('token') as String?;
+    _userId = await StorageHelper.read('userId') as String?;
+    _isLoggedIn = _token != null;
+    _sessionController.add(_isLoggedIn);
   }
 
-  /// Logs out the current user.
+  String? get token => _token;
+  String? get userId => _userId;
+  bool get isLoggedIn => _isLoggedIn;
+
+  /// Creates a new session, storing the user token and ID.
+  /// Emits the new login state to the session stream.
+  Future<void> login(String token, String userId) async {
+    _token = token;
+    _userId = userId;
+    _isLoggedIn = true;
+
+    await StorageHelper.write('token', token);
+    await StorageHelper.write('userId', userId);
+
+    _sessionController.add(true);
+  }
+
+  /// Clears all session data and logs the user out.
+  /// Emits the new login state to the session stream.
   Future<void> logout() async {
-    try {
-      // Simulate a logout request (replace with real API endpoint)
-      await _networkHelper.post('/logout');
-    } finally {
-      GlobalConfig().isLoggedIn = false;
-      if (!GlobalConfig().rememberMe) {
-        GlobalConfig().username = null;
-        GlobalConfig().password = null;
-      }
-    }
+    _token = null;
+    _userId = null;
+    _isLoggedIn = false;
+
+    await StorageHelper.clear(); // Clears all persisted data
+
+    _sessionController.add(false);
   }
 
-  /// Checks if the user is currently logged in.
-  bool isLoggedIn() => GlobalConfig().isLoggedIn;
+  /// Disposes of the session stream controller.
+  /// Should be called when the app is permanently shutting down.
+  void dispose() {
+    _sessionController.close();
+  }
 }

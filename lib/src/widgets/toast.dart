@@ -18,7 +18,7 @@ void showToast(
       child: Material(
         elevation: 4.0,
         borderRadius: BorderRadius.circular(8.0),
-        color: theme.neutralColor.withOpacity(0.9),
+        color: theme.neutralColor.withAlpha(230), // 90% opacity
         child: Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
           child: Text(

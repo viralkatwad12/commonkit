@@ -20,14 +20,49 @@ A lightweight, reusable utility package for Flutter apps, providing a collection
 ### Helpers
 - **Validators**: Validate form fields (e.g., email, required).
 - **DateFormatter**: Format dates and get "time ago" strings.
+  ```dart
+  // Format a date
+  String formatted = DateFormatter.format(DateTime.now(), 'yyyy-MM-dd');
+
+  // Get a "time ago" string
+  String timeAgo = DateFormatter.timeAgo(DateTime.now().subtract(Duration(minutes: 5)));
+  ```
 - **NetworkHelper**: Simplify HTTP GET/POST with file upload support.
 - **ImageCacheHelper**: Preload images for performance.
 - **Debouncer**: Delay function calls for input debouncing.
 - **StorageHelper**: Store key-value pairs persistently.
+  ```dart
+  // Initialize StorageHelper
+  final storage = StorageHelper();
+  await storage.init();
+
+  // Set a value
+  await storage.set('my_key', 'my_value');
+
+  // Get a value
+  String? value = await storage.get('my_key');
+  ```
 - **AnimationHelper**: Create fade and slide animations easily.
 - **ResponsiveHelper**: Build responsive layouts with breakpoints.
 - **SessionManager**: Manage login/logout with global state.
 - **DirectoryManager**: Handle local file system operations (create, update, delete, list).
+  ```dart
+  // Initialize DirectoryManager
+  final dirManager = DirectoryManager();
+  await dirManager.init();
+
+  // Create a file
+  await dirManager.createFile('my_folder/my_file.txt', 'Hello, World!');
+
+  // Read a file
+  String content = await dirManager.readFile('my_folder/my_file.txt');
+
+  // List files in a directory
+  List<String> files = await dirManager.listFiles('my_folder');
+
+  // Delete a file
+  await dirManager.deleteFile('my_folder/my_file.txt');
+  ```
 - **Logger**: Log messages with info, warning, and error levels.
 - **ClipboardManager**: Copy/paste text to/from the clipboard.
 - **DataSerializer**: Serialize/deserialize JSON data.
