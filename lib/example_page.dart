@@ -14,7 +14,6 @@ class ExamplePage extends StatefulWidget {
 class _ExamplePageState extends State<ExamplePage> {
   final _networkHelper = NetworkHelper();
   final _directoryManager = DirectoryManager();
-  final _sessionManager = SessionManager();
   String _status = '';
 
   Future<void> _testNetwork() async {
@@ -22,9 +21,11 @@ class _ExamplePageState extends State<ExamplePage> {
       setState(() => _status = 'Fetching...');
       final data = await _networkHelper.get('/posts/1');
       setState(() => _status = 'Network: ${data['title'].truncate(20)}');
+      if (!mounted) return;
       showToast(context, message: 'Network Success');
     } catch (e) {
       setState(() => _status = 'Network Error: $e');
+      if (!mounted) return;
       showCustomDialog(context, title: 'Error', content: e.toString());
     }
   }
@@ -42,6 +43,7 @@ class _ExamplePageState extends State<ExamplePage> {
           fields: {'title': 'Example Upload'},
         );
         setState(() => _status = 'Upload: $data');
+        if (!mounted) return;
         showToast(context, message: 'Upload Success');
       } catch (e) {
         setState(() => _status = 'Upload Error: $e');
@@ -54,6 +56,7 @@ class _ExamplePageState extends State<ExamplePage> {
     final dir = await _directoryManager.createDirectory('example_dir');
     await _directoryManager.createFile('example_dir/test.txt', content: 'Example');
     setState(() => _status = 'Directory: ${dir.path}');
+    if (!mounted) return;
     showToast(context, message: 'Directory Created');
   }
 
@@ -61,12 +64,14 @@ class _ExamplePageState extends State<ExamplePage> {
     await ClipboardManager.copy('Example Text');
     final pasted = await ClipboardManager.paste();
     setState(() => _status = 'Clipboard: $pasted');
+    if (!mounted) return;
     showToast(context, message: 'Copied and Pasted');
   }
 
   Future<void> _testPermission() async {
     final granted = await PermissionManager.request(Permission.storage);
     setState(() => _status = 'Permission: ${granted ? "Granted" : "Denied"}');
+    if (!mounted) return;
     showCustomDialog(
       context,
       title: 'Permission',
